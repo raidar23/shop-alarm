@@ -41,12 +41,15 @@ Set-Content -Path $linkFile -Value $link -Encoding utf8
 
 # 4. if the website is on GitHub Pages (github-repo.txt + github-token.txt in this folder), tell it where the
 #    server is now, by updating docs/backend.json in the repo. Visitors keep using the github.io link.
-$repoFile = Join-Path $here 'github-repo.txt'; $tokenFile = Join-Path $here 'github-token.txt'
+#    The permission comes from github-token.txt if there is one, else from the gh tool's sign-in
+#    ("Sign in to GitHub.bat"); it's only kept in memory here.
+$repoFile = Join-Path $here 'github-repo.txt'; $tokenFile = Join-Path $here 'github-token.txt'; $ghExe = Join-Path $here 'gh.exe'
 $siteLink = $link; $ghNote = ''
-if ((Test-Path $repoFile) -and (Test-Path $tokenFile)) {
+$token = if (Test-Path $tokenFile) { (Get-Content $tokenFile -Raw).Trim() } elseif (Test-Path $ghExe) { try { (& $ghExe auth token 2>$null | Out-String).Trim() } catch { '' } } else { '' }
+if ((Test-Path $repoFile) -and $token) {
   try {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-    $repo = (Get-Content $repoFile -Raw).Trim(); $token = (Get-Content $tokenFile -Raw).Trim()
+    $repo = (Get-Content $repoFile -Raw).Trim()
     $api = "https://api.github.com/repos/$repo/contents/docs/backend.json"
     $h = @{ Authorization = "Bearer $token"; 'User-Agent' = 'shop-alarm-server'; Accept = 'application/vnd.github+json' }
     $sha = $null; try { $sha = (Invoke-RestMethod $api -Headers $h).sha } catch {}
