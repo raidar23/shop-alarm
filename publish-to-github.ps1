@@ -30,6 +30,7 @@ Get-ChildItem (Join-Path $here 'web') -Recurse -File | ForEach-Object { $files['
 $files['docs/.nojekyll'] = $null   # serve the files as they are
 
 function Put($path, [byte[]]$bytes, $message) {
+  if ($null -eq $bytes) { $bytes = New-Object byte[] 0 } # an empty file
   $url = "$base/" + ((($path -split '/') | ForEach-Object { [uri]::EscapeDataString($_) }) -join '/')
   $sha = $null; $same = $false
   try { $cur = Invoke-RestMethod $url -Headers $h; $sha = $cur.sha; $same = (($cur.content -replace '\s', '') -eq [Convert]::ToBase64String($bytes)) } catch {}
