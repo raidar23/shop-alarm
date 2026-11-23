@@ -657,7 +657,7 @@ function setPlaying() {
     $('gameArea').appendChild(wv);
   }
 }
-if (!IS_EXT) setPlaying();
+if (!IS_EXT && !IS_WEB) setPlaying(); // only the desktop app shows the game
 // the header's game button: in the app it reloads the game (handy if it gets stuck after an update);
 // in the extension it takes you to your Magic Garden tab (or opens one)
 $('play').onclick = () => IS_EXT ? mg.focusGame() : document.querySelector('#gameArea webview')?.reload();
