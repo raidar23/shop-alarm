@@ -66,5 +66,9 @@ fs.copyFileSync(path.join(here, 'web-src', 'mg-web.js'), path.join(web, 'mg-web.
 let site = fs.readFileSync(path.join(out, 'panel.html'), 'utf8')
   .replace('<script src="mg-shim.js"></script>', '<script src="mg-web.js"></script>')
   .replace('<title>Shop Alarm</title>', '<title>Magic Garden Shop Alarm</title>\n<meta name="viewport" content="width=device-width, initial-scale=1">\n<meta name="description" content="Rings when the Magic Garden shop items you pick are in stock.">\n<link rel="icon" href="icons/icon32.png">');
+// stamp the script links with this build's version, so browsers fetch new files right after an update
+// (GitHub Pages lets browsers keep old copies for 10 minutes otherwise)
+const stamp = Date.now().toString(36);
+site = site.replace(/<script src="([\w-]+\.js)"><\/script>/g, `<script src="$1?v=${stamp}"></script>`);
 fs.writeFileSync(path.join(web, 'index.html'), site);
 console.log('Built the website in', web);
