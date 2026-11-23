@@ -18,7 +18,12 @@ foreach ($f in 'main.js', 'preload.js', 'panel.html', 'icon-extractor.js', 'icon
 Copy-Item (Join-Path $here 'web') (Join-Path $Out 'app\web') -Recurse
 Copy-Item (Join-Path $here 'node_modules\electron\dist') (Join-Path $Out 'runtime') -Recurse
 Copy-Item $cf (Join-Path $Out 'cloudflared.exe')
-foreach ($f in 'start-server.ps1', 'Start Shop Alarm Server.bat', 'Stop Shop Alarm Server.bat', 'Start With Windows.bat', 'README.txt') { Copy-Item (Join-Path $src $f) (Join-Path $Out $f) }
+foreach ($f in 'start-server.ps1', 'Start Shop Alarm Server.bat', 'Stop Shop Alarm Server.bat', 'Start With Windows.bat', 'Sign in to GitHub.bat', 'README.txt') { Copy-Item (Join-Path $src $f) (Join-Path $Out $f) }
+# GitHub Pages: the gh tool (for "Sign in to GitHub.bat") and which repository the site is in
+$gh = Join-Path $here 'tools\gh.exe'
+if (Test-Path $gh) { Copy-Item $gh (Join-Path $Out 'gh.exe') }
+$repoFile = Join-Path $here 'github-repo.txt'
+if (Test-Path $repoFile) { Copy-Item $repoFile (Join-Path $Out 'github-repo.txt') }
 
 $size = (Get-ChildItem $Out -Recurse -File | Measure-Object Length -Sum).Sum / 1MB
 "Built the server pack in $Out ({0:N0} MB)" -f $size
