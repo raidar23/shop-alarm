@@ -796,7 +796,26 @@
   body.ext .status button { font-size: 11.5px; }
   /* ---- the public website: no game, no buying; a centred column on wide screens ---- */
   body.web .buy, body.web #play { display: none !important; }
-  body.web #shell { max-width: 520px; margin: 0 auto; box-shadow: 0 0 30px #0008; }
+  /* the website fills the browser: one column on phones and narrow windows ... */
+  body.web #shell { width: 100% !important; max-width: 1500px; margin: 0 auto; box-shadow: none; }
+  /* ... and on wider screens two: the clocks, weather and alarm board on the left; the tabs and the shop on the right */
+  @media (min-width: 900px) {
+    body.web #shell { display: grid; grid-template-columns: minmax(340px, 420px) minmax(0, 1fr); column-gap: 6px;
+      grid-template-rows: auto auto auto auto auto auto minmax(0, 1fr);
+      grid-template-areas: "top top" "notes tabs" "off main" "alarm main" "offline main" "summary main" "fill main"; }
+    body.web .titlebar { grid-area: top; }
+    body.web #enableNotes { grid-area: notes; align-self: start; }
+    body.web #offNote { grid-area: off; }
+    body.web #alarm { grid-area: alarm; }
+    body.web #offline { grid-area: offline; }
+    body.web .summary { grid-area: summary; }
+    body.web .tabs { grid-area: tabs; align-self: start; }
+    body.web main { grid-area: main; min-height: 0; margin-bottom: 10px; }
+    body.web #settings, body.web #scrim { left: auto; right: max(0px, calc((100vw - 1500px) / 2)); width: min(520px, 100vw); }
+    body.web #toast { left: auto; right: 24px; width: 420px; }
+  }
+  /* the shop's shelves get roomier on big screens */
+  @media (min-width: 1300px) { body.web .tiles { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); } }
   body.web #enableNotes { display: flex; }
   #enableNotes { display: none; align-items: center; gap: 10px; margin: 12px 10px 0; padding: 8px 12px; border-radius: 12px; background: #2a7fd4; color: #fff; font-weight: 800; box-shadow: 0 2px 0 #0006; }
   #enableNotes.hide { display: none !important; }
