@@ -794,6 +794,7 @@
   body.ext .status button { font-size: 11.5px; }
   /* ---- the public website: no game, no buying; a centred column on wide screens ---- */
   body.web .buy, body.web #play { display: none !important; }
+  #side { display: none; }
   /* the website fills the browser: one column on phones and narrow windows ... */
   body.web #shell { width: 100% !important; max-width: 1500px; margin: 0 auto; box-shadow: none; }
   /* ... and on wider screens two: the clocks, weather and alarm board on the left; the tabs and the shop on the right */
@@ -808,6 +809,20 @@
     body.web #offline { grid-area: offline; }
     body.web .summary { grid-area: summary; }
     body.web .tabs { grid-area: tabs; align-self: start; }
+    /* the left column's empty space: what weather is coming and the rarest recent finds */
+    body.web #side { display: block; grid-area: fill; min-height: 0; overflow-y: auto; margin: 14px 0 10px 10px; padding: 4px 6px 10px 2px; }
+    body.web #side::-webkit-scrollbar { width: 8px; }
+    body.web #side::-webkit-scrollbar-thumb { background: #c89a62; border: 2px solid #3a2717; border-radius: 8px; }
+    body.web #side .label { margin-top: 4px; }
+    body.web #side .list { margin-bottom: 14px; }
+    body.web .side-row { padding: 6px 10px 8px; gap: 10px; }
+    body.web .side-row .pic { width: 34px; height: 34px; }
+    body.web .side-ic { width: 34px; height: 34px; display: grid; place-items: center; flex: none; font-size: 20px; }
+    body.web .side-ic img { width: 30px; height: 30px; object-fit: contain; }
+    body.web .side-when { flex: none; font-weight: 900; color: var(--sun); font-size: 12.5px; text-shadow: 0 1px 0 #0008; }
+    body.web .side-row.pickable { cursor: pointer; }
+    body.web .side-row.on .nm { color: var(--sun); }
+    body.web .side-bell { font-size: 11px; }
     body.web main { grid-area: main; min-height: 0; margin-bottom: 10px; }
     body.web #settings, body.web #scrim { left: auto; right: max(0px, calc((100vw - 1500px) / 2)); width: min(520px, 100vw); }
     body.web #toast { left: auto; right: 24px; width: 420px; }
@@ -863,6 +878,9 @@
     <div class="clocks" id="clocks"></div>
     <div class="weather" id="weather"><span class="wdot"></span><span>Checking the weather…</span></div>
   </section>
+
+  <!-- website, wide screens: fills the left column under the weather -->
+  <aside id="side"></aside>
 
   <nav class="tabs">
     <button data-tab="mine" class="active">My alarms<span class="n" id="watchCount">0</span></button>
@@ -1381,7 +1399,33 @@ $('calcSearch').oninput = renderCalcGrid;
 renderCalcMuts();
 function renderCalcAll() { renderCalcGrid(); renderCalc(); }
 
-function renderAll() { renderSummary(); renderMine(); renderPick(); renderShop(); renderCalcAll(); if (ringing.length) renderAlarm(); tick(); }
+// ---------- the website's side column (wide screens): what weather is coming, and the rarest recent finds ----------
+function renderSide() {
+  const el = $('side'); if (!el || !IS_WEB) return;
+  const t = now();
+  const coming = (weather?.forecast || []).filter(f => f.startsAtMs > t).slice(0, 6);
+  const recent = Object.entries(seen).map(([key, s]) => ({ key, s, it: byKey[key] }))
+    .filter(x => x.it && t - x.s.at < 86400000)
+    .sort((a, b) => (RANK[b.it.rarity] ?? -1) - (RANK[a.it.rarity] ?? -1) || b.s.at - a.s.at).slice(0, 14);
+  const ago = key => seenText(key, true).replace(/^seen /, '');
+  el.innerHTML = `<div class="label">Coming up</div><div class="list">${coming.map(f => `<div class="row side-row">
+      <span class="side-ic">${wxIcon(f)}</span>
+      <div class="info"><div class="nm">${esc(weatherName(f))}</div><div class="sub">${f.shop ? `opens the ${esc(shopName(f.shop))}` : f.group && !f.weather ? 'which one is a surprise' : 'no shop'}</div></div>
+      <span class="side-when num" data-until="${f.startsAtMs}" data-prefix="in "></span></div>`).join('') || '<div class="more">Nothing on the forecast</div>'}</div>
+    <div class="label">Rarest in the last day</div><div class="list">${recent.map(x => `<div class="row side-row pickable${watched.has(x.key) ? ' on' : ''}" data-side-key="${esc(x.key)}" data-r="${esc(x.it.rarity || 'Common')}" title="${watched.has(x.key) ? 'Alarm is on. Click to remove it' : 'Click to set an alarm for this'}">
+      <span class="pic">${pic(x.key, x.it.type)}</span>
+      <div class="info"><div class="nm">${esc(x.it.name)}${watched.has(x.key) ? ' <span class="side-bell">🔔</span>' : ''}</div><div class="sub"><span class="rar">${esc(x.it.rarity || '')}</span> · ${esc(shopName(x.it.shop))}</div></div>
+      <span class="side-when">${esc(ago(x.key))}</span></div>`).join('') || '<div class="more">Nothing seen yet today</div>'}</div>`;
+}
+if (IS_WEB) setInterval(renderSide, 60000); // keep "how long ago" fresh
+$('side')?.addEventListener('click', async e => {
+  const r = e.target.closest('[data-side-key]'); if (!r) return;
+  const key = r.dataset.sideKey;
+  watched = new Set(await mg.watch(key, !watched.has(key)));
+  renderAll();
+});
+
+function renderAll() { renderSummary(); renderSide(); renderMine(); renderPick(); renderShop(); renderCalcAll(); if (ringing.length) renderAlarm(); tick(); }
 
 // ---------- the clock ----------
 function tick() {
