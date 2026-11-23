@@ -796,6 +796,7 @@
   body.ext .status button { font-size: 11.5px; }
   /* ---- the public website: no game, no buying; a centred column on wide screens ---- */
   body.web .buy, body.web #play { display: none !important; }
+  #side { display: none; }
   /* the website fills the browser: one column on phones and narrow windows ... */
   body.web #shell { width: 100% !important; max-width: 1500px; margin: 0 auto; box-shadow: none; }
   /* ... and on wider screens two: the clocks, weather and alarm board on the left; the tabs and the shop on the right */
@@ -810,6 +811,20 @@
     body.web #offline { grid-area: offline; }
     body.web .summary { grid-area: summary; }
     body.web .tabs { grid-area: tabs; align-self: start; }
+    /* the left column's empty space: what weather is coming and the rarest recent finds */
+    body.web #side { display: block; grid-area: fill; min-height: 0; overflow-y: auto; margin: 14px 0 10px 10px; padding: 4px 6px 10px 2px; }
+    body.web #side::-webkit-scrollbar { width: 8px; }
+    body.web #side::-webkit-scrollbar-thumb { background: #c89a62; border: 2px solid #3a2717; border-radius: 8px; }
+    body.web #side .label { margin-top: 4px; }
+    body.web #side .list { margin-bottom: 14px; }
+    body.web .side-row { padding: 6px 10px 8px; gap: 10px; }
+    body.web .side-row .pic { width: 34px; height: 34px; }
+    body.web .side-ic { width: 34px; height: 34px; display: grid; place-items: center; flex: none; font-size: 20px; }
+    body.web .side-ic img { width: 30px; height: 30px; object-fit: contain; }
+    body.web .side-when { flex: none; font-weight: 900; color: var(--sun); font-size: 12.5px; text-shadow: 0 1px 0 #0008; }
+    body.web .side-row.pickable { cursor: pointer; }
+    body.web .side-row.on .nm { color: var(--sun); }
+    body.web .side-bell { font-size: 11px; }
     body.web main { grid-area: main; min-height: 0; margin-bottom: 10px; }
     body.web #settings, body.web #scrim { left: auto; right: max(0px, calc((100vw - 1500px) / 2)); width: min(520px, 100vw); }
     body.web #toast { left: auto; right: 24px; width: 420px; }
@@ -824,7 +839,7 @@
   body.ext #shell { width: auto !important; box-shadow: none; }
   @media (max-width: 400px) { body.ext .clock { padding: 6px 6px 11px; } body.ext .clock .t { font-size: 18px; } body.ext .tabs button { font-size: 12.5px; } }
 </style>
-<script src="theme-init.js?v=mwt5wjck"></script>
+<script src="theme-init.js?v=mwt66olm"></script>
 </head>
 <body>
 <div id="app">
@@ -858,6 +873,9 @@
     <div class="clocks" id="clocks"></div>
     <div class="weather" id="weather"><span class="wdot"></span><span>Checking the weather…</span></div>
   </section>
+
+  <!-- website, wide screens: fills the left column under the weather -->
+  <aside id="side"></aside>
 
   <nav class="tabs">
     <button data-tab="mine" class="active">My alarms<span class="n" id="watchCount">0</span></button>
@@ -918,8 +936,8 @@
   <div class="note">Each alarm has its own level. Silent just shows it. Ping plays one sound. Alert rings a few times and flashes the taskbar. Alarm rings for as long as the item is in the shop, or until you stop it. Change an item's level with the button next to it in My alarms.</div>
 </div>
 
-<script src="catalog.js?v=mwt5wjck"></script>
-<script src="mg-web.js?v=mwt5wjck"></script>
-<script src="panel-main.js?v=mwt5wjck"></script>
+<script src="catalog.js?v=mwt66olm"></script>
+<script src="mg-web.js?v=mwt66olm"></script>
+<script src="panel-main.js?v=mwt66olm"></script>
 </body>
 </html>
