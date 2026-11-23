@@ -28,11 +28,12 @@ THE LINK
   Cloudflare or ngrok account.
 
 GITHUB PAGES (a link that never changes)
-  If the website is published on GitHub Pages, put two files in this folder:
-    github-repo.txt   the repository, e.g.  yourname/shop-alarm
-    github-token.txt  a fine-grained GitHub token for that one repository ("Contents: Read and write")
-  Each time the server starts, it tells the GitHub page where it is now, so visitors can always use
-  https://yourname.github.io/shop-alarm/ (it may take a few minutes to catch up after a restart).
+  The website also lives on GitHub Pages (the repository is named in github-repo.txt). Each time the
+  server starts, it tells that page where it is now, so visitors can always use the github.io link
+  (it can take a few minutes to catch up after a restart). For that, sign this PC in to GitHub once:
+  double-click "Sign in to GitHub.bat", enter the code it shows on GitHub's page, click Authorize.
+  (Instead of signing in, a file github-token.txt with a fine-grained token for that one repository,
+  "Contents: Read and write", works too.)
 
 WHAT'S IN HERE
   app\            the Shop Alarm app (runs in "server mode": no window, no sounds)
