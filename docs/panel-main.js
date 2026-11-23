@@ -455,7 +455,33 @@ $('calcSearch').oninput = renderCalcGrid;
 renderCalcMuts();
 function renderCalcAll() { renderCalcGrid(); renderCalc(); }
 
-function renderAll() { renderSummary(); renderMine(); renderPick(); renderShop(); renderCalcAll(); if (ringing.length) renderAlarm(); tick(); }
+// ---------- the website's side column (wide screens): what weather is coming, and the rarest recent finds ----------
+function renderSide() {
+  const el = $('side'); if (!el || !IS_WEB) return;
+  const t = now();
+  const coming = (weather?.forecast || []).filter(f => f.startsAtMs > t).slice(0, 6);
+  const recent = Object.entries(seen).map(([key, s]) => ({ key, s, it: byKey[key] }))
+    .filter(x => x.it && t - x.s.at < 86400000)
+    .sort((a, b) => (RANK[b.it.rarity] ?? -1) - (RANK[a.it.rarity] ?? -1) || b.s.at - a.s.at).slice(0, 14);
+  const ago = key => seenText(key, true).replace(/^seen /, '');
+  el.innerHTML = `<div class="label">Coming up</div><div class="list">${coming.map(f => `<div class="row side-row">
+      <span class="side-ic">${wxIcon(f)}</span>
+      <div class="info"><div class="nm">${esc(weatherName(f))}</div><div class="sub">${f.shop ? `opens the ${esc(shopName(f.shop))}` : f.group && !f.weather ? 'which one is a surprise' : 'no shop'}</div></div>
+      <span class="side-when num" data-until="${f.startsAtMs}" data-prefix="in "></span></div>`).join('') || '<div class="more">Nothing on the forecast</div>'}</div>
+    <div class="label">Rarest in the last day</div><div class="list">${recent.map(x => `<div class="row side-row pickable${watched.has(x.key) ? ' on' : ''}" data-side-key="${esc(x.key)}" data-r="${esc(x.it.rarity || 'Common')}" title="${watched.has(x.key) ? 'Alarm is on. Click to remove it' : 'Click to set an alarm for this'}">
+      <span class="pic">${pic(x.key, x.it.type)}</span>
+      <div class="info"><div class="nm">${esc(x.it.name)}${watched.has(x.key) ? ' <span class="side-bell">🔔</span>' : ''}</div><div class="sub"><span class="rar">${esc(x.it.rarity || '')}</span> · ${esc(shopName(x.it.shop))}</div></div>
+      <span class="side-when">${esc(ago(x.key))}</span></div>`).join('') || '<div class="more">Nothing seen yet today</div>'}</div>`;
+}
+if (IS_WEB) setInterval(renderSide, 60000); // keep "how long ago" fresh
+$('side')?.addEventListener('click', async e => {
+  const r = e.target.closest('[data-side-key]'); if (!r) return;
+  const key = r.dataset.sideKey;
+  watched = new Set(await mg.watch(key, !watched.has(key)));
+  renderAll();
+});
+
+function renderAll() { renderSummary(); renderSide(); renderMine(); renderPick(); renderShop(); renderCalcAll(); if (ringing.length) renderAlarm(); tick(); }
 
 // ---------- the clock ----------
 function tick() {
