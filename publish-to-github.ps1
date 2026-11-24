@@ -28,6 +28,19 @@ foreach ($dir in 'extension-src', 'web-src', 'server-pack-src') {
 }
 Get-ChildItem (Join-Path $here 'web') -Recurse -File | ForEach-Object { $files['docs/' + ($_.FullName.Substring((Join-Path $here 'web').Length + 1) -replace '\\', '/')] = $_.FullName }
 $files['docs/.nojekyll'] = $null   # serve the files as they are
+# the game's pictures, prices and textures, for a server that can't read them itself (no graphics card):
+# taken from this PC's newest copy (the app's or the server pack's)
+$art = @("$env:APPDATA\Magic Garden Shop Alarm Server\icons.json", "$env:APPDATA\Magic Garden Shop Alarm\icons.json") | Where-Object { Test-Path $_ } |
+  Sort-Object { (Get-Item $_).LastWriteTime } -Descending | Select-Object -First 1
+if ($art) {
+  $c = [IO.File]::ReadAllText($art) | ConvertFrom-Json
+  if ($c.icons) {
+    $assets = [ordered]@{ version = $c.version; icons = $c.icons; prices = $c.prices; crops = $c.crops; wxart = $c.weatherArt; ui = $c.ui }
+    $tmp = Join-Path $env:TEMP 'shop-alarm-assets.json'
+    [IO.File]::WriteAllText($tmp, ($assets | ConvertTo-Json -Depth 6 -Compress), (New-Object System.Text.UTF8Encoding($false)))
+    $files['docs/assets.json'] = $tmp
+  }
+}
 
 function Put($path, [byte[]]$bytes, $message) {
   if ($null -eq $bytes) { $bytes = New-Object byte[] 0 } # an empty file
