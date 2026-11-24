@@ -567,7 +567,8 @@ function updateTray() {
 }
 function createTray() {
   if (tray) return;
-  tray = new Tray(nativeImage.createFromPath(ICON).resize({ width: 16, height: 16 }));
+  // (a Linux server has no tray to put an icon in: then it simply runs without one)
+  try { tray = new Tray(nativeImage.createFromPath(ICON).resize({ width: 16, height: 16 })); } catch { tray = null; return; }
   tray.on('click', showWindow);
   updateTray();
 }
