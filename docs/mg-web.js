@@ -90,7 +90,12 @@
   }
   let assetsVersion = null;
   async function loadAssets(force) {
-    const a = await fetch(API + 'api/assets', { cache: force ? 'reload' : 'default' }).then(r => r.json()).catch(() => null);
+    let a = await fetch(API + 'api/assets', { cache: force ? 'reload' : 'default' }).then(r => r.json()).catch(() => null);
+    // a server without a graphics card can't read the game's pictures: then use the copy published with the site
+    if (!a?.icons || !Object.keys(a.icons).length) {
+      const pub = await fetch('assets.json', { cache: 'no-cache' }).then(r => (r.ok ? r.json() : null)).catch(() => null);
+      if (pub?.icons) a = pub;
+    }
     if (!a || (a.version === assetsVersion && !force)) return a;
     assetsVersion = a.version;
     if (force) { emit('icons', a.icons); emit('prices', a.prices); emit('crops', a.crops); emit('wxart', a.wxart); emit('ui', a.ui); }
