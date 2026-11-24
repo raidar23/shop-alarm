@@ -52,7 +52,7 @@
   // ---- the live feed from the server ----
   // Two ways at once: a live stream (instant, but some tunnels and proxies hold it back) and a small check
   // every few seconds (always gets through). Whichever brings a change first, the page updates once.
-  let lastKey = '', lastConnected = null, catalogCount = 0;
+  let lastKey = '', lastConnected = null, catalogCount = 0, bootedWithData = false;
   function takeShops(d) {
     const key = JSON.stringify([d.shops, d.weather]);
     if (key === lastKey) return;
@@ -67,6 +67,8 @@
   async function poll() {
     try {
       const d = await fetch(API + 'api/live', { cache: 'no-store' }).then(r => r.json());
+      // the page opened before the server could be reached (e.g. right after it restarted): start over now it can
+      if (!bootedWithData && d.shops) { location.reload(); return; }
       takeStatus(d);
       if (d.shops) takeShops(d);
       if (d.assetsVersion && d.assetsVersion !== assetsVersion) loadAssets(true);
@@ -116,7 +118,9 @@
       const s = load();
       const [state, assets] = await Promise.all([fetch(API + 'api/state').then(r => r.json()).catch(() => ({})), loadAssets(false)]);
       lastShops = state.shops || null;
-      lastKey = JSON.stringify([state.shops, state.weather]); lastConnected = !!state.connected; catalogCount = (state.catalog || []).length;
+      bootedWithData = !!state.shops; // (pictures that arrive later come in through the regular checks)
+      // if it's not reachable yet, the regular checks (listen, below) keep trying, and reload once it answers
+      lastKey =JSON.stringify([state.shops, state.weather]); lastConnected = !!state.connected; catalogCount = (state.catalog || []).length;
       // what's in the shop when you open the page doesn't ring (it still shows as "in the shop")
       for (const k of s.watched) markCurrent(k);
       setTimeout(listen, 0);
